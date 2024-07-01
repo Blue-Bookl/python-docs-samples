@@ -12,24 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# [START aiplatform_sdk_multimodal_embedding_video]
 from typing import Optional
 
-import vertexai
-from vertexai.vision_models import (
-    MultiModalEmbeddingModel,
-    MultiModalEmbeddingResponse,
-    Video,
-    VideoSegmentConfig,
-)
+from vertexai.vision_models import MultiModalEmbeddingResponse, VideoSegmentConfig
 
 
 def get_video_embeddings(
     project_id: str,
-    location: str,
     video_path: str,
     contextual_text: Optional[str] = None,
-    dimension: Optional[int] = 1408,
     video_segment_config: Optional[VideoSegmentConfig] = None,
 ) -> MultiModalEmbeddingResponse:
     """Example of how to generate multimodal embeddings from video and text.
@@ -39,13 +30,17 @@ def get_video_embeddings(
         location: Google Cloud Region, used to initialize vertexai
         video_path: Path to video (local or Google Cloud Storage) to generate embeddings for.
         contextual_text: Text to generate embeddings for.
-        dimension: Dimension for the returned embeddings.
-            https://cloud.google.com/vertex-ai/docs/generative-ai/embeddings/get-multimodal-embeddings#low-dimension
         video_segment_config: Define specific segments to generate embeddings for.
             https://cloud.google.com/vertex-ai/docs/generative-ai/embeddings/get-multimodal-embeddings#video-best-practices
     """
+    # [START aiplatform_sdk_multimodal_embedding_video]
+    import vertexai
 
-    vertexai.init(project=project_id, location=location)
+    from vertexai.vision_models import MultiModalEmbeddingModel, Video
+
+    # TODO(developer): Update values for project_id,
+    #               video_path, contextual_text, dimension, video_segment_config
+    vertexai.init(project=project_id, location="us-central1")
 
     model = MultiModalEmbeddingModel.from_pretrained("multimodalembedding")
     video = Video.load_from_file(video_path)
@@ -54,7 +49,6 @@ def get_video_embeddings(
         video=video,
         video_segment_config=video_segment_config,
         contextual_text=contextual_text,
-        dimension=dimension,
     )
 
     # Video Embeddings are segmented based on the video_segment_config.

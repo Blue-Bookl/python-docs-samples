@@ -12,33 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# [START aiplatform_sdk_multimodal_embedding_image]
 from typing import Optional
 
-import vertexai
-from vertexai.vision_models import (
-    Image,
-    MultiModalEmbeddingModel,
-    MultiModalEmbeddingResponse,
-)
+from vertexai.vision_models import MultiModalEmbeddingResponse
 
 
 def get_image_embeddings(
     project_id: str,
-    location: str,
     image_path: str,
     contextual_text: Optional[str] = None,
+    dimension: Optional[int] = 1408,
 ) -> MultiModalEmbeddingResponse:
     """Example of how to generate multimodal embeddings from image and text.
 
     Args:
         project_id: Google Cloud Project ID, used to initialize vertexai
-        location: Google Cloud Region, used to initialize vertexai
         image_path: Path to image (local or Google Cloud Storage) to generate embeddings for.
         contextual_text: Text to generate embeddings for.
+        dimension: Dimension for the returned embeddings.
+            https://cloud.google.com/vertex-ai/docs/generative-ai/embeddings/get-multimodal-embeddings#low-dimension
     """
+    # [START aiplatform_sdk_multimodal_embedding_image]
+    import vertexai
+    from vertexai.vision_models import Image, MultiModalEmbeddingModel
 
-    vertexai.init(project=project_id, location=location)
+    # TODO(developer): Update values for project_id, image_path & contextual_text
+    vertexai.init(project=project_id, location="us-central1")
 
     model = MultiModalEmbeddingModel.from_pretrained("multimodalembedding")
     image = Image.load_from_file(image_path)
@@ -46,6 +45,7 @@ def get_image_embeddings(
     embeddings = model.get_embeddings(
         image=image,
         contextual_text=contextual_text,
+        dimension=dimension,
     )
     print(f"Image Embedding: {embeddings.image_embedding}")
     print(f"Text Embedding: {embeddings.text_embedding}")

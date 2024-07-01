@@ -12,26 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# [START aiplatform_sdk_multimodal_embedding_image_video_text]
 from typing import Optional
 
-import vertexai
-from vertexai.vision_models import (
-    Image,
-    MultiModalEmbeddingModel,
-    MultiModalEmbeddingResponse,
-    Video,
-    VideoSegmentConfig,
-)
+from vertexai.vision_models import MultiModalEmbeddingResponse, VideoSegmentConfig
 
 
 def get_image_video_text_embeddings(
     project_id: str,
-    location: str,
     image_path: str,
     video_path: str,
     contextual_text: Optional[str] = None,
-    dimension: Optional[int] = 1408,
     video_segment_config: Optional[VideoSegmentConfig] = None,
 ) -> MultiModalEmbeddingResponse:
     """Example of how to generate multimodal embeddings from image, video, and text.
@@ -42,13 +32,17 @@ def get_image_video_text_embeddings(
         image_path: Path to image (local or Google Cloud Storage) to generate embeddings for.
         video_path: Path to video (local or Google Cloud Storage) to generate embeddings for.
         contextual_text: Text to generate embeddings for.
-        dimension: Dimension for the returned embeddings.
-            https://cloud.google.com/vertex-ai/docs/generative-ai/embeddings/get-multimodal-embeddings#low-dimension
         video_segment_config: Define specific segments to generate embeddings for.
             https://cloud.google.com/vertex-ai/docs/generative-ai/embeddings/get-multimodal-embeddings#video-best-practices
     """
+    # [START aiplatform_sdk_multimodal_embedding_image_video_text]
+    import vertexai
 
-    vertexai.init(project=project_id, location=location)
+    from vertexai.vision_models import Image, MultiModalEmbeddingModel, Video
+
+    # TODO(developer): Update values for project_id,
+    #            image_path, video_path, contextual_text, video_segment_config
+    vertexai.init(project=project_id, location="us-central1")
 
     model = MultiModalEmbeddingModel.from_pretrained("multimodalembedding")
     image = Image.load_from_file(image_path)
@@ -59,7 +53,6 @@ def get_image_video_text_embeddings(
         video=video,
         video_segment_config=video_segment_config,
         contextual_text=contextual_text,
-        dimension=dimension,
     )
 
     print(f"Image Embedding: {embeddings.image_embedding}")

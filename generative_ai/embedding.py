@@ -13,18 +13,27 @@
 # limitations under the License.
 
 # [START aiplatform_sdk_embedding]
-from vertexai.language_models import TextEmbeddingModel
+from typing import List, Optional
+
+from vertexai.language_models import TextEmbeddingInput, TextEmbeddingModel
 
 
-def text_embedding(text: str = "What is life?") -> list:
-    """Text embedding with a Large Language Model."""
-    model = TextEmbeddingModel.from_pretrained("textembedding-gecko@001")
-    embeddings = model.get_embeddings([text])
-    vector = embeddings[0].values
-    print(f"Length of Embedding Vector: {len(vector)}")
-    return vector
+def embed_text(
+    texts: List[str] = ["banana muffins? ", "banana bread? banana muffins?"],
+    task: str = "RETRIEVAL_DOCUMENT",
+    model_name: str = "text-embedding-004",
+    dimensionality: Optional[int] = 256,
+) -> List[List[float]]:
+    """Embeds texts with a pre-trained, foundational model."""
+    model = TextEmbeddingModel.from_pretrained(model_name)
+    inputs = [TextEmbeddingInput(text, task) for text in texts]
+    kwargs = dict(output_dimensionality=dimensionality) if dimensionality else {}
+    embeddings = model.get_embeddings(inputs, **kwargs)
+    return [embedding.values for embedding in embeddings]
 
 
 # [END aiplatform_sdk_embedding]
+
+
 if __name__ == "__main__":
-    text_embedding()
+    embed_text()

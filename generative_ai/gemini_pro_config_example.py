@@ -12,19 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# [START aiplatform_gemini_pro_config_example]
-import base64
 
-import vertexai
-from vertexai.generative_models import GenerativeModel, Part
+def generate_text(project_id: str) -> None:
+    # [START generativeaionvertexai_gemini_pro_config_example]
+    import base64
+    import vertexai
 
+    from vertexai.generative_models import GenerationConfig, GenerativeModel, Part
 
-def generate_text(project_id: str, location: str) -> None:
-    # Initialize Vertex AI
-    vertexai.init(project=project_id, location=location)
+    # TODO(developer): Update and un-comment below line
+    # project_id = "PROJECT_ID"
 
-    # Load the model
-    model = GenerativeModel("gemini-1.0-pro-vision")
+    vertexai.init(project=project_id, location="us-central1")
+
+    model = GenerativeModel(model_name="gemini-1.5-flash-001")
 
     # Load example image from local storage
     encoded_image = base64.b64encode(open("scones.jpg", "rb").read()).decode("utf-8")
@@ -33,14 +34,15 @@ def generate_text(project_id: str, location: str) -> None:
     )
 
     # Generation Config
-    config = {"max_output_tokens": 2048, "temperature": 0.4, "top_p": 1, "top_k": 32}
+    config = GenerationConfig(
+        max_output_tokens=2048, temperature=0.4, top_p=1, top_k=32
+    )
 
     # Generate text
     response = model.generate_content(
         [image_content, "what is this image?"], generation_config=config
     )
     print(response.text)
+    # [END generativeaionvertexai_gemini_pro_config_example]
+
     return response.text
-
-
-# [END aiplatform_gemini_pro_config_example]

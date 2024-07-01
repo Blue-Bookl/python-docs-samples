@@ -13,17 +13,19 @@
 # limitations under the License.
 
 
-def chat_text_example(project_id: str, location: str) -> str:
-    # [START aiplatform_gemini_multiturn_chat]
+def chat_text_example(project_id: str) -> str:
+    # [START generativeaionvertexai_gemini_multiturn_chat]
     import vertexai
+
     from vertexai.generative_models import GenerativeModel, ChatSession
 
     # TODO(developer): Update and un-comment below lines
     # project_id = "PROJECT_ID"
-    # location = "us-central1"
-    vertexai.init(project=project_id, location=location)
 
-    model = GenerativeModel("gemini-1.0-pro")
+    vertexai.init(project=project_id, location="us-central1")
+
+    model = GenerativeModel(model_name="gemini-1.5-flash-001")
+
     chat = model.start_chat()
 
     def get_chat_response(chat: ChatSession, prompt: str) -> str:
@@ -38,20 +40,23 @@ def chat_text_example(project_id: str, location: str) -> str:
 
     prompt = "Why does it appear when it rains?"
     print(get_chat_response(chat, prompt))
-    # [END aiplatform_gemini_multiturn_chat]
+    # [END generativeaionvertexai_gemini_multiturn_chat]
     return get_chat_response(chat, "Hello")
 
 
-def chat_stream_example(project_id: str, location: str) -> str:
-    # [START aiplatform_gemini_multiturn_chat_stream]
+def chat_stream_example(project_id: str) -> str:
+    # [START generativeaionvertexai_gemini_multiturn_chat_stream]
     import vertexai
+
     from vertexai.generative_models import GenerativeModel, ChatSession
 
-    # TODO(developer): Update and un-comment below lines
+    # TODO(developer): Update and un-comment below line
     # project_id = "PROJECT_ID"
-    # location = "us-central1"
-    vertexai.init(project=project_id, location=location)
-    model = GenerativeModel("gemini-1.0-pro")
+
+    vertexai.init(project=project_id, location="us-central1")
+
+    model = GenerativeModel(model_name="gemini-1.5-flash-001")
+
     chat = model.start_chat()
 
     def get_chat_response(chat: ChatSession, prompt: str) -> str:
@@ -69,5 +74,5 @@ def chat_stream_example(project_id: str, location: str) -> str:
 
     prompt = "Why does it appear when it rains?"
     print(get_chat_response(chat, prompt))
-    # [END aiplatform_gemini_multiturn_chat_stream]
+    # [END generativeaionvertexai_gemini_multiturn_chat_stream]
     return get_chat_response(chat, "Hello")

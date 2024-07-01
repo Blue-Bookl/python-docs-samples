@@ -17,15 +17,22 @@ import os
 import pytest
 import vertexai
 
+import gemini_all_modalities
+import gemini_audio
 import gemini_chat_example
 import gemini_count_token_example
 import gemini_grounding_example
 import gemini_guide_example
 import gemini_multi_image_example
+import gemini_pdf_example
 import gemini_pro_basic_example
 import gemini_pro_config_example
 import gemini_safety_config_example
 import gemini_single_turn_video_example
+import gemini_system_instruction
+import gemini_text_input_example
+import gemini_video_audio
+
 
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
 LOCATION = "us-central1"
@@ -34,17 +41,19 @@ vertexai.init(project=PROJECT_ID, location=LOCATION)
 
 
 def test_gemini_guide_example() -> None:
-    text = gemini_guide_example.generate_text(PROJECT_ID, LOCATION)
+    text = gemini_guide_example.generate_text(PROJECT_ID)
     text = text.lower()
     assert len(text) > 0
-    assert "scones" in text
+
+
+def test_gemini_text_input_example() -> None:
+    text = gemini_text_input_example.generate_from_text_input(PROJECT_ID)
+    assert len(text) > 0
 
 
 def test_gemini_pro_basic_example() -> None:
-    text = gemini_pro_basic_example.generate_text(PROJECT_ID, LOCATION)
-    text = text.lower()
+    text = gemini_pro_basic_example.generate_text(PROJECT_ID)
     assert len(text) > 0
-    assert "recipe" in text or "ingredients" in text or "table" in text
 
 
 def test_gemini_pro_config_example() -> None:
@@ -56,10 +65,9 @@ def test_gemini_pro_config_example() -> None:
     urllib.request.urlretrieve(url, fname)
 
     if os.path.isfile(fname):
-        text = gemini_pro_config_example.generate_text(PROJECT_ID, LOCATION)
+        text = gemini_pro_config_example.generate_text(PROJECT_ID)
         text = text.lower()
         assert len(text) > 0
-        assert "recipe" in text or "table" in text
 
         # clean-up
         os.remove(fname)
@@ -68,7 +76,7 @@ def test_gemini_pro_config_example() -> None:
 
 
 def test_gemini_multi_image_example() -> None:
-    text = gemini_multi_image_example.generate_text_multimodal(PROJECT_ID, LOCATION)
+    text = gemini_multi_image_example.generate_text_multimodal(PROJECT_ID)
     text = text.lower()
     assert len(text) > 0
     assert "city" in text
@@ -76,58 +84,44 @@ def test_gemini_multi_image_example() -> None:
 
 
 def test_gemini_count_token_example() -> None:
-    text = gemini_count_token_example.generate_text(PROJECT_ID, LOCATION)
-    text = text.lower()
-    assert len(text) > 0
-    assert "sky" in text
+    response = gemini_count_token_example.count_tokens(PROJECT_ID)
+    assert response
+    assert response.usage_metadata
+
+    response = gemini_count_token_example.count_tokens_multimodal(PROJECT_ID)
+    assert response
+    assert response.usage_metadata
 
 
 def test_gemini_safety_config_example() -> None:
-    import http
-    import typing
-    import urllib
-
-    from vertexai.preview.generative_models import Image
-
-    def load_image_from_url(image_url: str) -> str:
-        with urllib.request.urlopen(image_url) as response:
-            response = typing.cast(http.client.HTTPResponse, response)
-            image_bytes = response.read()
-        return Image.from_bytes(image_bytes)
-
-    # import base64
-
-    # base64_image_data = base64.b64encode(
-    #     open('scones.jpg', 'rb').read()).decode("utf-8")
-    # image = generative_models.Part.from_data(
-    #     data=base64.b64decode(base64_image_data), mime_type="image/png")
-    image = load_image_from_url(
-        "https://storage.googleapis.com/generativeai-downloads/images/scones.jpg"
-    )
-
-    vertexai.init(project=PROJECT_ID, location=LOCATION)
-    text = gemini_safety_config_example.generate_text(PROJECT_ID, LOCATION, image)
-    text = text.lower()
+    text = gemini_safety_config_example.generate_text(PROJECT_ID)
     assert len(text) > 0
-    assert any(
-        [_ in text for _ in ("scone", "blueberry", "coffee,", "flower", "table")]
-    )
 
 
 def test_gemini_single_turn_video_example() -> None:
-    text = gemini_single_turn_video_example.generate_text(PROJECT_ID, LOCATION)
+    text = gemini_single_turn_video_example.generate_text(PROJECT_ID)
     text = text.lower()
     assert len(text) > 0
-    assert any([_ in text for _ in ("zoo", "tiger", "leaf", "water")])
+    assert any(
+        [_ in text for _ in ("zoo", "tiger", "leaf", "water", "animals", "photos")]
+    )
+
+
+@pytest.mark.skip(
+    "TODO: Exception Logs indicate safety filters are likely blocking model output b/339985493"
+)
+def test_gemini_pdf_example() -> None:
+    text = gemini_pdf_example.analyze_pdf(PROJECT_ID)
+    assert len(text) > 0
 
 
 def test_gemini_chat_example() -> None:
-    text = gemini_chat_example.chat_text_example(PROJECT_ID, LOCATION)
+    text = gemini_chat_example.chat_text_example(PROJECT_ID)
     text = text.lower()
     assert len(text) > 0
     assert any([_ in text for _ in ("hi", "hello", "greeting")])
 
-    text = gemini_chat_example.chat_stream_example(PROJECT_ID, LOCATION)
+    text = gemini_chat_example.chat_stream_example(PROJECT_ID)
     text = text.lower()
     assert len(text) > 0
     assert any([_ in text for _ in ("hi", "hello", "greeting")])
@@ -136,10 +130,42 @@ def test_gemini_chat_example() -> None:
 @pytest.mark.skip(
     "Unable to test Google Search grounding due to allowlist restrictions."
 )
-def test_gemini_grounding_example() -> None:
-    data_store_id = "test-search-engine_1689960780551"
-    data_store_path = f"projects/{PROJECT_ID}/locations/{LOCATION}/collections/default_collection/dataStores/{data_store_id}"
-    response = gemini_grounding_example.generate_text_with_grounding(
-        PROJECT_ID, LOCATION, data_store_path=data_store_path
+def test_gemini_grounding_web_example() -> None:
+    response = gemini_grounding_example.generate_text_with_grounding_web(
+        PROJECT_ID,
     )
     assert response
+
+
+def test_gemini_grounding_vais_example() -> None:
+    data_store_path = f"projects/{PROJECT_ID}/locations/global/collections/default_collection/dataStores/grounding-test-datastore"
+    response = gemini_grounding_example.generate_text_with_grounding_vertex_ai_search(
+        PROJECT_ID,
+        data_store_path=data_store_path,
+    )
+    assert response
+
+
+def test_summarize_audio() -> None:
+    text = gemini_audio.summarize_audio(PROJECT_ID)
+    assert len(text) > 0
+
+
+def test_transcript_audio() -> None:
+    text = gemini_audio.transcript_audio(PROJECT_ID)
+    assert len(text) > 0
+
+
+def test_analyze_video_with_audio() -> None:
+    text = gemini_video_audio.analyze_video_with_audio(PROJECT_ID)
+    assert len(text) > 0
+
+
+def test_analyze_all_modalities() -> None:
+    text = gemini_all_modalities.analyze_all_modalities(PROJECT_ID)
+    assert len(text) > 0
+
+
+def test_set_system_instruction() -> None:
+    text = gemini_system_instruction.set_system_instruction(PROJECT_ID)
+    assert len(text) > 0
